@@ -1,4 +1,4 @@
-Setting Up the Virtual Environment and Installing Dependencies :
+
 To replicate the results of this project, you need to set up a virtual environment and install the necessary dependencies.
 
 Prerequisites
