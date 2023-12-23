@@ -166,7 +166,7 @@ all_orientation_keys = ["up","up_x_60","up_x_-60","up_y_60","up_y_-60", "side_No
 
 #---------------------------
 
-path_to_ur5_urdf_file = "C:\\Users\\youssef\\UR5_robot_machine_learning\\UR5_RG2\\ur5_robot_without_limits.urdf.xml"
+path_to_ur5_urdf_file = ".\\ur5_robot_without_limits.urdf.xml"
 
 dict_of_all_ik_computed = compute_ik_configs_of_multip_pos_orientations(path_to_ur5_urdf_file,\
                             mapping_dict_forward_new, \

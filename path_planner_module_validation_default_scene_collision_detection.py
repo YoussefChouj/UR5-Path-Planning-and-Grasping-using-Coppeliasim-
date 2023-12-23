@@ -1,4 +1,4 @@
-# path_planner_module.py
+
 
 # Import necessary libraries
 from coppeliasim_zmqremoteapi_client import RemoteAPIClient
