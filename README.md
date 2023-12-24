@@ -126,3 +126,6 @@ path_index_to_plot = 2  # Change this to the desired path index
 
 plot_all_joint_data(close_data, path_index_to_plot)
 # To plot data for close paths, use: plot_all_joint_data(close_data, path_index_to_plot)
+
+# Watch video at:
+    https://www.youtube.com/watch?v=ojhHVL0t34I
