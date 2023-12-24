@@ -46,7 +46,8 @@ New orientation for fin6 please choose from ('up','up_x_60','up_x_-60','up_y_60'
 
 Directly after come the sequenced path planning that loop on to  the key to value mappings in the following sequence
 
-![Uploading image.png…]()
+
+![image](https://github.com/YoussefChouj/UR5-Path-Planning-and-Grasping-using-Coppeliasim-/assets/153049901/f1a1a5d8-68aa-47be-a334-ebb512c62a07)
 
 
 
