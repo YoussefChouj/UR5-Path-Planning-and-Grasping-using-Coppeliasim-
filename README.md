@@ -118,8 +118,6 @@ close_path_file = 'C:\\Users\\youssef\\UR5_robot_machine_learning\\UR5_RG2\\clos
 open_data = load_data(open_path_file)
 close_data = load_data(close_path_file)
 
-#Watch video at :
-https://www.youtube.com/watch?v=ojhHVL0t34I
 
 # Example usage
 path_index_to_plot = 2  # Change this to the desired path index
@@ -128,4 +126,4 @@ plot_all_joint_data(close_data, path_index_to_plot)
 # To plot data for close paths, use: plot_all_joint_data(close_data, path_index_to_plot)
 
 # Watch video at:
-    https://www.youtube.com/watch?v=ojhHVL0t34I
+https://www.youtube.com/watch?v=ojhHVL0t34I
