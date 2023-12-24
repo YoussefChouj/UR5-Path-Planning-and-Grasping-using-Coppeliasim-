@@ -1,11 +1,11 @@
 # Automatic Picking and Placing of objects from one table to another in Coppeliasim Using a UR5 robot and a RG2 Gripper:
 
-## Fully automatic and Customizable picking and placing of objects from one table to another using kinpy for inverse kinematics and Coppeliasim  OMPL plugin for motion planning
-##  accessed throught the zmq remote Api access for pregrasp planning  and on Coppeliasi scene side Used the  online trajectory generation and exection it  using lua scripting 
-This project is an implementation of pregrasp planning where the collision free paths are computed beforehand and stored in two files the open and close paths differentiated by the state of the gripper if its open or close  to be executed automatically later on when we start the simulation in the scene.  The provided code does the following :
+## Fully automatic and Customizable picking and placing of objects from one table to another using kinpy for inverse kinematics and Coppeliasim  OMPL plugin for motion planning accessed throught the zmq remote Api access for pregrasp planning  and on Coppeliasi scene side Used the  online trajectory generation and exection it  using lua scripting 
+     This project is an implementation of pregrasp planning where the collision free paths are computed beforehand and stored in two files the open and close paths differentiated by the state of the gripper if its open or close  to be executed automatically later on when we start the simulation in the scene.  The provided code does the following :
 Now lets Outlined how the Pre-Grasp Planning has been implemented :
 
-first we will need the the start and goal configurations of the robot along with other accompanying information, like the desired pose the object name , the name of of the dummy where the inverse kinematics need to happen ,the desired pose of the griper TCP and other optional data like the picking or placing orientations for example by default if the path planning code is run we get the following dictionary :
+    First we will need the the start and goal configurations of the robot along with other accompanying information, like the desired pose the object name , the name of of the dummy where the inverse kinematics need to happen ,the desired pose of the griper TCP and other optional data like the picking or placing orientations for example by default if the path planning code is run we get the following dictionary :
+    
 dict_of_all_ik_computed: {'init1': [array([5.6712645 , 0.04032066, 1.48919789, 0.04127727, 4.71238892,
        4.10046861]), 'up', '/DummyTb2Pos1', [0.6999998807907105, -0.649999713897705, 0.6850000381465475, -0.7071068345716235, 0.0, 0.0, 0.7071067278014678], True], 'init2': [array([5.79058293, 0.48350375, 0.92195442, 0.16533849, 4.71238894,
        4.21978697]), 'up', '/DummyTb2Pos2', [0.8749997854232787, -0.6749997615814208, 0.6850000083446505, -0.7071068345716235, 0.0, 0.0, 0.7071067278014678], True], 'init3': [array([6.22603416, 0.25933827, 
@@ -23,7 +23,7 @@ dict_of_all_ik_computed: {'init1': [array([5.6712645 , 0.04032066, 1.48919789, 0
        1.6588312 ]), 'up', '/DummyTb1Pos6', [-0.4500008344650267, -0.4000040322542192, 0.6709907710552218, -0.7071068345716235, 0.0, 0.0, 0.7071067278014678], False]} 
 Where for each key stored is a list where the 1st columns is where the computed ik solution is , the 2nd column is where the picking orientation is set, the 3rd column is where the name of the dummy in the coppeliasim scene, the 4th column is where the desired Gripper TCP is stored and the 5th column is where a Boolean storing the state whether the object exist bellow the dummy or not .
 
-Then as I coded the path planning start following a default sequence if the user picks it or in a custom faction where he is asked to choose between the two :
+    Then as I coded the path planning start following a default sequence if the user picks it or in a custom faction where he is asked to choose between the two :
 ‘’Do you want to use default mapping? (yes/no): yes’’
 if yes then the default picking and placing positions are assigned
 If no then the user is asked to input from to where to pick and place an object 
@@ -70,18 +70,18 @@ Open Anaconda Prompt or your terminal.
 Navigate to the cloned repository's directory.
 Create a new virtual environment by running:
 
-conda create --name youssef_env python=3.10.10
+'''conda create --name youssef_env python=3.10.10
 
 Activate the Virtual Environment:
 
 Activate the created environment by running:
 
-conda activate youssef_env
+'''conda activate youssef_env
 
 Installing Dependencies
 With the virtual environment activated, install the required packages using the requirements.txt file:
 
-pip install -r requirements.txt
+'''pip install -r requirements.txt
 
 Running the Code
 After setting up the environment and installing dependencies, navigate to the script's directory and before running the code make sure 
