@@ -118,6 +118,9 @@ close_path_file = 'C:\\Users\\youssef\\UR5_robot_machine_learning\\UR5_RG2\\clos
 open_data = load_data(open_path_file)
 close_data = load_data(close_path_file)
 
+#Watch video at :
+https://www.youtube.com/watch?v=ojhHVL0t34I
+
 # Example usage
 path_index_to_plot = 2  # Change this to the desired path index
 
