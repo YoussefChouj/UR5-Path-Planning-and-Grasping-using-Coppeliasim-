@@ -1,4 +1,5 @@
-
+# Automatic Picking and Placing of objects from one table to another in Coppeliasim
+# Using a UR5 robot and a RG2 Gripper:
 To replicate the results of this project, you need to set up a virtual environment and install the necessary dependencies.
 
 Prerequisites
