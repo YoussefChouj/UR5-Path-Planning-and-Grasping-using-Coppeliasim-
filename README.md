@@ -105,4 +105,17 @@ function sysCall_thread()
     print("Data saved to openPathData.json and closePathData.json")
     sim.stopSimulation()
 end
-after specifying the paths where the joints data have been saved and to plot them copy the same paths to  the Plot_Joints_Data.py file instructions to plot specific datas is their within the comments  before running it 
+after specifying the paths where the joints data have been saved and to plot them copy the same paths to  the Plot_Joints_Data.py file instructions to plot specific datas  
+
+# Load data
+open_path_file = 'C:\\Users\\youssef\\UR5_robot_machine_learning\\UR5_RG2\\openPathData.json'
+close_path_file = 'C:\\Users\\youssef\\UR5_robot_machine_learning\\UR5_RG2\\closePathData.json'
+
+open_data = load_data(open_path_file)
+close_data = load_data(close_path_file)
+
+# Example usage
+path_index_to_plot = 2  # Change this to the desired path index
+
+plot_all_joint_data(close_data, path_index_to_plot)
+# To plot data for close paths, use: plot_all_joint_data(close_data, path_index_to_plot)
