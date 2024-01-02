@@ -37,8 +37,8 @@ def plot_all_joint_data(data, path_index):
         plt.show()
 
 # Load data
-open_path_file = 'C:\\Users\\youssef\\UR5_robot_machine_learning\\UR5_RG2\\openPathData.json'
-close_path_file = 'C:\\Users\\youssef\\UR5_robot_machine_learning\\UR5_RG2\\closePathData.json'
+open_path_file = 'UR5_RG2_Simulation_Coppeliasim\\openPathData.json'
+close_path_file = 'UR5_RG2_Simulation_Coppeliasim\\closePathData.json'
 
 open_data = load_data(open_path_file)
 close_data = load_data(close_path_file)

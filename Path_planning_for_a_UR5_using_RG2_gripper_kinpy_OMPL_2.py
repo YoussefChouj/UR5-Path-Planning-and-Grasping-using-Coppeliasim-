@@ -166,7 +166,8 @@ all_orientation_keys = ["up","up_x_60","up_x_-60","up_y_60","up_y_-60", "side_No
 
 #---------------------------
 
-path_to_ur5_urdf_file = ".\\ur5_robot_without_limits.urdf.xml"
+path_to_ur5_urdf_file = "UR5_RG2_Simulation_Coppeliasim\\ur5_robot_without_limits.urdf.xml"
+
 
 dict_of_all_ik_computed = compute_ik_configs_of_multip_pos_orientations(path_to_ur5_urdf_file,\
                             mapping_dict_forward_new, \
@@ -426,9 +427,9 @@ def convert_element(element):
 def save_paths(open_paths, close_paths):
 
     # Save the open and close paths to JSON files
-    with open("open_paths.json", "w") as f:
+    with open("UR5_RG2_Simulation_Coppeliasim\\open_paths.json", "w") as f:
         json.dump(open_paths, f)
-    with open("close_paths.json", "w") as f:
+    with open("UR5_RG2_Simulation_Coppeliasim\\close_paths.json", "w") as f:
         json.dump(close_paths, f)
 
 
