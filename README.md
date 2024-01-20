@@ -83,9 +83,10 @@ Activate the created environment by running:
     conda activate youssef_env
 
 Installing Dependencies
-With the virtual environment activated, install the required packages using the requirements.txt file:
 
-    pip install -r requirements.txt
+
+    pip install coppeliasim_zmqremoteapi_client
+    pip install kinpy
 
 Running the Code
 After setting up the environment and installing dependencies, navigate to the script's directory and before running the code make sure 
