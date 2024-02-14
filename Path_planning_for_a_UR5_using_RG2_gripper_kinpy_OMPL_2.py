@@ -3,13 +3,11 @@ from coppeliasim_zmqremoteapi_client import RemoteAPIClient
 import numpy as np
 from  inverse_kinematics_using_kinpy_working import compute_ik_configs_of_multip_pos_orientations, IK_Kinpy
 from path_planner_module_validation_default_scene_collision_detection import PathPlanner, RobotManager , AngleBoundsCalculator
+import json
 
 client = RemoteAPIClient()
 sim = client.require('sim')
 simOMPL = client.require('simOMPL')
-
-
-
 
 
 
@@ -40,86 +38,161 @@ for obj_name in object_names:
 #print("Object Handles Dictionary:", objects_dict)
 
 
-
 class CustomMapping:
-    def __init__(self, default_forward, default_values, object_names_aliases):
+    # Initializer for the CustomMapping class
+    def __init__(self, default_forward, values, mapping_from_dummy_names_to_object_names):
+        # Store the default forward mapping
         self.default_forward = default_forward
-        self.values = default_values
+        # Store the default values for positions and configurations
+        self.values = values
+        # Placeholder for modified values after setup
         self.modified_values = None
+        # Placeholder for automatic default condition status
         self.aut_def_cond = None
+        # Dictionary mapping dummy names to object names
         self.dict_Dummies_to_object_name_mapping = {}
+        # Flags to track if default or custom mapping is chosen
         self.default_mapping_chosen = False
         self.custom_mapping_chosen = False
-        self.object_names_aliases = object_names_aliases
+        # Store the mapping from dummy names to object names
+        self.mapping_from_dummy_names_to_object_names = mapping_from_dummy_names_to_object_names
 
+
+
+    # Main setup method to configure the mapping
     def setup(self):
+        # Ask user to choose between default or custom mapping
         use_default = input("Do you want to use default mapping? (yes/no): ")
         if use_default.lower() == 'yes':
             self.setup_default()         
         else:
             self.setup_custom()
+        # Setup orientation based on user input
         self.setup_orientation()
+        # Update modified values after setup
         self.modified_values = self.values
-        
 
+    # Method to setup default mapping
     def setup_default(self):
+        # Initialize forward and reverse mapping dictionaries
         self.mapping_dict_forward = {}
         self.mapping_dict_reverse = {}
+        # Create forward and reverse mappings based on default_forward
         for k, v in self.default_forward.items():
             init_key = next(key for key, val in self.values.items() if val[2] == k)
             fin_key = next(key for key, val in self.values.items() if val[2] == v)
             self.mapping_dict_forward[init_key] = fin_key
             self.mapping_dict_reverse[fin_key] = init_key
+        # Mark that default mapping is chosen
         self.default_mapping_chosen = True
-        self.update_object_name_mapping()
 
+
+    # Method to setup custom mapping defined by the user
     def setup_custom(self):
+        # Initialize forward mapping dictionary
         self.mapping_dict_forward = {}
-        for k, v in self.values.items():
-            if 'init' in k:
-                corresponding_key = input(f"For {k}, specify the corresponding 'fin' key: ")
-                self.mapping_dict_forward[k] = corresponding_key
-        # Automatically generate the reverse mapping
-        self.mapping_dict_reverse = {v: k for k, v in self.mapping_dict_forward.items()}
-        self.custom_mapping_chosen = True
-        self.update_object_name_mapping(self.object_names_aliases)
+        # Create lists of available keys and values for mapping
+        available_keys = list(self.values.keys())
+        available_values = list(self.values.keys())
 
+        # Iterate until all keys and values are mapped or 'done' is input
+        while available_keys and available_values:
+            # Display available keys and get user input
+            print("Available keys: ", available_keys)
+            key = input("Select a key (or type 'done' to finish): ")
+            if key.lower() == 'done':
+                break
+            if key not in available_keys:
+                print("Invalid key or key already used. Please select a valid key.")
+                continue
+
+            # Display available values and get user input
+            print("Available values: ", available_values)
+            value = input("Select a value for the chosen key: ")
+            if value not in available_values:
+                print("Invalid value or value already used. Please select a valid value.")
+                continue
+
+            # Add the key-value pair to the mapping and update available lists
+            self.mapping_dict_forward[key] = value
+            available_keys.remove(key)
+            available_values.remove(value)
+
+        # Display final forward mapping
+        print(f"mapping_dict_forward: {self.mapping_dict_forward}")
+        # Generate and store the reverse mapping automatically
+        self.mapping_dict_reverse = {v: k for k, v in self.mapping_dict_forward.items()}
+        # Mark that custom mapping is chosen
+        self.custom_mapping_chosen = True
+
+
+    # Method to setup orientation based on user input
     def setup_orientation(self):
-        change_orientation = input("Do you want to change the default picking orientations or use automatic feasible ones it is recomended to use automated found ones  ? (yes/no): ")
+        # Ask user if they want to change the default picking orientations
+        change_orientation = input("Do you want to change the default picking orientations or use automatic feasible ones (it is recommended to use automated found ones)? (yes/no): ")
         if change_orientation.lower() == 'yes':
-            for k, v in self.values.items():
-                new_orientation = input(f"New orientation for {k} please choose from ('up','up_x_60','up_x_-60','up_y_60','up_y_-60', 'side_North','side_South', 'side_West', 'side_East'): ")
-                self.values[k][1] = new_orientation
+
+            # Allow user to set new orientation for each key in the chosen mapping
+            for (k,v) in self.mapping_dict_forward.items():
+                new_orientation_init = input(f"New orientation for {k} please choose from ('up','up_x_60','up_x_-60','up_y_60','up_y_-60', 'side_North','side_South', 'side_West', 'side_East'): ")
+                new_orientation_fin = input(f"New orientation for {k} please choose from ('up','up_x_60','up_x_-60','up_y_60','up_y_-60', 'side_North','side_South', 'side_West', 'side_East'): ")
+                
+                self.values[k][1] = new_orientation_init
+                self.values[v][1] = new_orientation_fin
+
             self.aut_def_cond = False
         else:
-           self.aut_def_cond = True 
+            # Use automated orientations
+            self.aut_def_cond = True
 
+
+    # Method to setup conditional values based on mapping
     def setup_cond_values(self):
-        for k in self.values.keys():
+        for k in self.mapping_dict_forward.keys():
             if self.dict_Dummies_to_object_name_mapping[self.values[k][2]] == None:
                 self.values[k][-1] = False
             else:
                 self.values[k][-1] = True 
 
-    def update_object_name_mapping(self):
-        if self.default_mapping_chosen:
-            for i, obj_name in enumerate(self.object_names_aliases):
-                self.dict_Dummies_to_object_name_mapping[f'/DummyTb2Pos{i+1}'] = obj_name
-                self.dict_Dummies_to_object_name_mapping[f'/DummyTb1Pos{i+1}'] = None
-        elif self.custom_mapping_chosen:
-            # Update based on custom mapping
-            for init_key, fin_key in self.mapping_dict_forward.items():
-                init_pos = self.values[init_key][2]
-                fin_pos = self.values[fin_key][2]
-                obj_name = self.dict_Dummies_to_object_name_mapping[fin_pos]
-                self.dict_Dummies_to_object_name_mapping[init_pos] = obj_name
-                self.dict_Dummies_to_object_name_mapping[fin_pos] = None
-        self.setup_cond_values()
+    # Method to update object name mapping based on chosen mapping
+    def update_object_name_mapping(self,init_keyy):
+        obj_name = None
+        vals = list(self.mapping_dict_forward.values())  # Create a copy of vals
+        init_key = init_keyy
+        while True:  # Loop until object name is found
+            print(f"Debug: Checking init_key={init_key}, vals={vals}")
+            if init_key in vals:
+                # Get the key corresponding to value init_key
+                key_dumm = self.values[init_key][2]
+                obj_name = self.mapping_from_dummy_names_to_object_names[key_dumm]
+                if obj_name is None:
+                    print(f"Debug: Object name is None. Updating init_key={init_key}")
+                    vals.remove(init_key)
+                    init_key = self.mapping_dict_reverse[init_key]
+                    continue
+                else:
+                    print(f"Debug: Object name found: {obj_name}")
+                    self.mapping_from_dummy_names_to_object_names[self.values[init_keyy][2]] = obj_name
+                    self.values[init_keyy][-1] = True
+                    break
+            else:
+                key_dumm = self.values[init_key][2]
+                obj_name = self.mapping_from_dummy_names_to_object_names[key_dumm]
+                print(f"Debug: init_key={init_key} not in vals. Namme found.")
+                break
+
+        return obj_name
 
 
-# Initialize config arrays
+
+
+
+
+# Code to initialize and setup the CustomMapping instance
+# Initialize config arrays for each position
 configs = [np.zeros(6) for _ in range(12)]
-# Initialize and setup
+
+# Define the default forward mapping
 mapping_dict_forward = {
     '/DummyTb2Pos1': '/DummyTb1Pos1',
     '/DummyTb2Pos2': '/DummyTb1Pos2',
@@ -129,44 +202,54 @@ mapping_dict_forward = {
     '/DummyTb2Pos6': '/DummyTb1Pos6',
 }
 
-
+# Define the dictionary of all positions and corresponding robot configurations
 dict_of_all_pos_and_corr_robotconfigs = {
-    f'init{i+1}': [configs[i], "up", f'/DummyTb2Pos{i+1}',  None, None] for i in range(6)
+    f'init{i+1}': [configs[i], "up", f'/DummyTb2Pos{i+1}',  None, False] for i in range(6)
 } | {
-    f'fin{i+1}': [configs[i+6], "up", f'/DummyTb1Pos{i+1}', None, None] for i in range(6)
+    f'fin{i+1}': [configs[i+6], "up", f'/DummyTb1Pos{i+1}', None, False] for i in range(6)
 }
 
+# Define object names aliases
 object_names_alliases = [
     '/Cuboid_1', '/Cuboid_2', '/Cuboid_3', 
     '/Cylinder_4', '/Sphere_5', '/Sphere_6'
 ]
 
+# Define mapping from dummy names to object names
+mapping_from_dummy_names_to_object_names = {
+    '/DummyTb2Pos1': '/Cuboid_1',
+    '/DummyTb2Pos2': '/Cuboid_2',
+    '/DummyTb2Pos3': '/Cuboid_3',
+    '/DummyTb2Pos4': '/Cylinder_4',
+    '/DummyTb2Pos5': '/Sphere_5',
+    '/DummyTb2Pos6': '/Sphere_6',
+} | {
+    f'/DummyTb1Pos{i+1}': None for i in range(6)
+}
 
-
-
-cm = CustomMapping(mapping_dict_forward, dict_of_all_pos_and_corr_robotconfigs,object_names_alliases)
+# Create an instance of CustomMapping and set it up
+cm = CustomMapping(mapping_dict_forward, dict_of_all_pos_and_corr_robotconfigs, mapping_from_dummy_names_to_object_names)
 cm.setup()
 
-
-
+# Extract updated mappings and values after setup
 mapping_dict_forward_new = cm.mapping_dict_forward 
-
 dict_of_all_pos_and_corr_robotconfigs_new = cm.modified_values 
-aut_def_condition =cm.aut_def_cond
-
+aut_def_condition = cm.aut_def_cond
 dict_Dummies_to_object_name_mapping = cm.dict_Dummies_to_object_name_mapping
-  
+
 
 print ("dict_of_all_pos_and_corr_robotconfigs_new", dict_of_all_pos_and_corr_robotconfigs_new)
 
 print ("mapping_dict_forward_new:",mapping_dict_forward_new)
+
+print ("dict_Dummies_to_object_name_mapping:",dict_Dummies_to_object_name_mapping)
 
 
 all_orientation_keys = ["up","up_x_60","up_x_-60","up_y_60","up_y_-60", "side_North", "side_South", "side_West", "side_East"]
 
 #---------------------------
 
-path_to_ur5_urdf_file = "UR5_RG2_Simulation_Coppeliasim\\ur5_robot_without_limits.urdf.xml"
+path_to_ur5_urdf_file = "ur5_robot_without_limits.urdf.xml"
 
 
 dict_of_all_ik_computed = compute_ik_configs_of_multip_pos_orientations(path_to_ur5_urdf_file,\
@@ -176,7 +259,7 @@ dict_of_all_ik_computed = compute_ik_configs_of_multip_pos_orientations(path_to_
 
 print ("dict_of_all_ik_computed:", dict_of_all_ik_computed)
 
-print("dict_Dummies_to_object_name_mapping:",dict_Dummies_to_object_name_mapping)
+
 
 
 #------------------------------- IKpath generation 
@@ -262,7 +345,8 @@ static_object_names = [
 ]
 
 
-def generate_straight_path_custom(object_name, object_name_next,dummy_name,pose, pathPointCount, Robot_manager,prev_path_conf, orient):
+def generate_straight_path_custom(object_name, oper , dummy_name, pose, pathPointCount, Robot_manager, prev_path_conf, orient):
+    print("Ikkkk")
     # Ensure pathPointCount is a positive integer
     print(f"pose[2]: {pose[2]}")
     if pathPointCount <= 0:
@@ -272,7 +356,7 @@ def generate_straight_path_custom(object_name, object_name_next,dummy_name,pose,
     dum_hand = sim.getObject(dummy_name)
     size = sim.getShapeBB(obj_hand)
     z = 0.41
-    if object_name_next is  None:
+    if oper == 'Place':
 
         dum_hand = sim.getObject(dummy_name)
         obj_pos = sim.getObjectPosition(obj_hand, sim.handle_world)
@@ -288,7 +372,7 @@ def generate_straight_path_custom(object_name, object_name_next,dummy_name,pose,
             # Calculate the final z position of the gripper TCP.
             rel_dis = abs(desired_z_position - dum_pos[2])
 
-    else:
+    elif oper == 'Pick':
         if object_name.startswith("/Cuboid_") or object_name.startswith("/Cylinder_"): 
             rel_dis = pose[2] - (z+size[-1] - 0.030)
         else:
@@ -417,7 +501,6 @@ def generate_straight_path_custom_IK(object_name, object_name_next,dummy_name,po
     return straightPath[:1]
 
 
-import json
 
 def convert_element(element):
     if isinstance(element, np.ndarray):
@@ -427,9 +510,9 @@ def convert_element(element):
 def save_paths(open_paths, close_paths):
 
     # Save the open and close paths to JSON files
-    with open("UR5_RG2_Simulation_Coppeliasim\\open_paths.json", "w") as f:
+    with open("open_paths.json", "w") as f:
         json.dump(open_paths, f)
-    with open("UR5_RG2_Simulation_Coppeliasim\\close_paths.json", "w") as f:
+    with open("close_paths.json", "w") as f:
         json.dump(close_paths, f)
 
 
@@ -448,13 +531,13 @@ def generate_paths(mapping_dict_forward_new):
     dis_open_paths = []
     close_paths = []
     dis_close_paths = []
-
+    print(f"mapping_dict_forward_new.items(): {mapping_dict_forward_new.items()}")
     j = 0
     for idx, (init_key, fin_key) in enumerate(mapping_dict_forward_new.items()):
         print(f"init_key: {init_key}")
         config1 = dict_of_all_ik_computed[init_key][0].tolist()
         config2 = dict_of_all_ik_computed[fin_key][0].tolist()
-        object_name = dict_Dummies_to_object_name_mapping[dict_of_all_ik_computed[init_key][2]]
+        object_name = cm.update_object_name_mapping(init_key)
         print("object_name:", object_name)
         pose1 = dict_of_all_ik_computed[init_key][3]
         pose2 = dict_of_all_ik_computed[fin_key][3]
@@ -474,7 +557,8 @@ def generate_paths(mapping_dict_forward_new):
             dis_open_paths = paths[j][0] 
 
         # Down movement for picking
-        paths[j + 1] = [generate_straight_path_custom(object_name, None, dummy1, pose1, 2, Robot_manager, paths[j][0][-1], picking_orient), pose1, 'IK_path_forward', 'Open']
+
+        paths[j + 1] = [generate_straight_path_custom(object_name, 'Pick', dummy1, pose1, 2, Robot_manager, config1, picking_orient), config1, pose1, 'IK_path_forward', 'Open']
         dis_open_paths.extend(paths[j + 1][0])
         open_paths.append(dis_open_paths)
         dis_open_paths = [] 
@@ -486,13 +570,12 @@ def generate_paths(mapping_dict_forward_new):
         # General path from config1 to config2
         print(f"initial_config:{config1}\n config1: {config2}")
         Robot_manager.manage_object(object_name, 'add_to_robot')
-        next_object_name = dict_Dummies_to_object_name_mapping[dict_of_all_ik_computed[fin_key][2]]
         paths[j + 3] = [planner.plan_path(config1, config2, planning_time, nb_max_nodes, Robot_manager, False, 6), config2, pose2, 'general_path', 'Close']
         dis_close_paths .extend(paths[j + 3][0]) 
 
 
         # Down movement for placing
-        paths[j + 4] = [generate_straight_path_custom(object_name, next_object_name, dummy2, pose2, 2, Robot_manager, paths[j + 3][0][-1], placing_orient), pose2, 'IK_path_forward', 'Close']
+        paths[j + 4] = [generate_straight_path_custom(object_name, 'Place', dummy2, pose2, 2, Robot_manager, config2, placing_orient), config2, pose2, 'IK_path_forward', 'Close']
         dis_close_paths.extend( paths[j + 4] [0]) # need to be concatinated
 
         close_paths.append(dis_close_paths)
@@ -516,123 +599,20 @@ def generate_paths(mapping_dict_forward_new):
         Robot_manager.manage_object(object_name, 'return_to_environment')
         next_idx = idx + 1
         next_init_key = list(mapping_dict_forward_new.keys())[next_idx]
-        print(f"next_init_key: {next_init_key}")
-        config3 = dict_of_all_ik_computed[next_init_key][0].tolist()
-        pose3 = dict_of_all_ik_computed[next_init_key][3]
-        object_name_nn = dict_Dummies_to_object_name_mapping[dict_of_all_ik_computed[next_init_key][2]]
-        paths[j + 7] = [planner.plan_path(config2, config3, planning_time, nb_max_nodes, Robot_manager, False, 6), config3, pose3, 'general_path', 'Open']
-        dis_open_paths.extend(paths[j + 7][0])
+        if next_init_key == fin_key:
+            continue
+        else:
+            print(f"next_init_key: {next_init_key}")
+            config3 = dict_of_all_ik_computed[next_init_key][0].tolist()
+            pose3 = dict_of_all_ik_computed[next_init_key][3]
+            paths[j + 7] = [planner.plan_path(config2, config3, planning_time, nb_max_nodes, Robot_manager, False, 6), config3, pose3, 'general_path', 'Open']
+            dis_open_paths.extend(paths[j + 7][0])
 
-        j += 7
+            j += 7
 
     return paths
 
 
-def set_config(simJointHandles, config, dynModel):
-    for i in range(len(simJointHandles)):
-        if dynModel:
-            sim.setJointTargetPosition(simJointHandles[i], config[i])
-        else:
-            sim.setJointPosition(simJointHandles[i], config[i])
-
-class GripperController:
-    def __init__(self, sim):
-        self.sim = sim
-
-    def open_gripper(self):
-        # Set signal to open the gripper
-        self.sim.setInt32Signal('RG2_open', 1)
-
-        # Wait for the gripper to finish opening
-        while True:
-            if self.sim.getInt32Signal('Gripper_Open_close_done') is not None:
-                break
-
-        # Clear the signals
-        self.sim.clearInt32Signal('RG2_open')
-        self.sim.clearInt32Signal('Gripper_Open_close_done')
-
-    def close_gripper(self):
-        # Clear signal to close the gripper (by default it closes)
-        self.sim.setInt32Signal('RG2_open', 0)
-
-        # Wait for the gripper to finish closing
-        while True:
-            if self.sim.getInt32Signal('Gripper_Open_close_done') is not None:
-                break
-
-        # Clear the done signal
-        self.sim.clearInt32Signal('Gripper_Open_close_done')
-
-gripper = GripperController(sim)
-
-
-
-
-def extract_nodes(path, total_nodes):
-    """
-    Extracts nodes from a path with denser spacing at the edges and sparser in the middle.
-    
-    :param path: A list of nodes (e.g., waypoints) in the path.
-    :param total_nodes: Total number of nodes to extract.
-    :return: A list of extracted nodes.
-    """
-    if total_nodes >= len(path):
-        return path
-
-    # Use a sine function to determine the indices of nodes to extract
-    indices = (np.sin(np.linspace(-np.pi / 2, np.pi / 2, total_nodes)) + 1) / 2 * (len(path) - 1)
-    indices = np.round(indices).astype(int)
-
-    # Extract nodes based on calculated indices
-    extracted_nodes = [path[idx] for idx in indices]
-
-    return extracted_nodes
-
-
-
-
-
-
-
-def load_data(path):
-    with open(path, 'r') as f:
-        data = json.load(f)
-    return data
-
-
-
 paths = generate_paths(mapping_dict_forward_new)
 
-
-
-                
-
-
-
-
-                
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+sim.startSimulation()

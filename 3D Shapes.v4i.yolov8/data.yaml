@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 3
+names: ['Cube', 'Cylinder', 'Sphere']
+
+roboflow:
+  workspace: nypshapecolour
+  project: 3d-shapes-kfj1q
+  version: 4
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/nypshapecolour/3d-shapes-kfj1q/dataset/4

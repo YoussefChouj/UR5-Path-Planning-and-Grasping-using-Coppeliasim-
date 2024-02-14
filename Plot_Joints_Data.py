@@ -1,5 +1,4 @@
 import json
-import pandas as pd
 import matplotlib.pyplot as plt
 
 def load_data(file_path):
@@ -37,8 +36,8 @@ def plot_all_joint_data(data, path_index):
         plt.show()
 
 # Load data
-open_path_file = 'UR5_RG2_Simulation_Coppeliasim\\openPathData.json'
-close_path_file = 'UR5_RG2_Simulation_Coppeliasim\\closePathData.json'
+open_path_file = 'openPathData.json'
+close_path_file = 'closePathData.json'
 
 open_data = load_data(open_path_file)
 close_data = load_data(close_path_file)
